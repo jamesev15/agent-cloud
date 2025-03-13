@@ -11,3 +11,6 @@ docker build -t us-central1-docker.pkg.dev/k8s-taller-4/docker-images/agent-clou
 
 docker push us-central1-docker.pkg.dev/k8s-taller-4/docker-images/agent-cloud:latest
 
+
+
+gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev
