@@ -7,6 +7,17 @@ from typing_extensions import TypedDict
 from langgraph.graph import StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
+import os
+from langchain_qdrant import QdrantVectorStore
+from qdrant_client import QdrantClient
+from langchain_openai import OpenAIEmbeddings
+from langchain_core.runnables import RunnableLambda
+
+url = "https://e7f4684c-fd33-4db0-b1d3-268870ecb84d.europe-west3-0.gcp.cloud.qdrant.io:6333"
+api_key = os.getenv("QDRANT_API_KEY")
+
+
+COLLECTION_NAME = "idat-cloud"
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,7 +34,27 @@ def book_a_flight(flight_number: str, date: str):
     logger.info(message)
     return message
 
-tools = [book_a_flight]
+def search_flight_regulations(query: str):
+    """Search information related to a query for an Airline called idat Airlines"""
+    client = QdrantClient(
+        url=url,
+        api_key=api_key,
+        https=True,
+        timeout=300
+    )
+
+    vector_store_page = QdrantVectorStore(
+        client=client,
+        collection_name=COLLECTION_NAME,
+        embedding=OpenAIEmbeddings(model="text-embedding-ada-002"),
+    )
+    retriever = vector_store_page.as_retriever()
+
+    docs = retriever.invoke(query)
+
+    return "\n\n".join(doc.page_content for doc in docs)
+
+tools = [book_a_flight, search_flight_regulations]
 llm = ChatOpenAI(model="gpt-4o")
 llm_with_tools = llm.bind_tools(tools)
 
