@@ -13,6 +13,10 @@ from qdrant_client import QdrantClient
 from langchain_openai import OpenAIEmbeddings
 from langchain_core.runnables import RunnableLambda
 
+os.environ["LANGCHAIN_TRACING_V2"]="true"
+os.environ["LANGCHAIN_PROJECT"] = "agent-cloud"
+
+
 url = "https://e7f4684c-fd33-4db0-b1d3-268870ecb84d.europe-west3-0.gcp.cloud.qdrant.io:6333"
 api_key = os.getenv("QDRANT_API_KEY")
 
